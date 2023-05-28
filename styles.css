@@ -1,0 +1,49 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  font-family: "Russo One", sans-serif;
+}
+
+body {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+canvas {
+  background-color: rgb(34, 34, 34);
+  cursor: url(crosshair.cur), default;
+}
+img {
+  display: none;
+}
+
+h2 {
+  color: white;
+}
+
+.pause {
+  cursor: pointer;
+  position: absolute;
+
+  height: 80px;
+  width: 80px;
+  right: 1%;
+  bottom: 2%;
+}
+.resume {
+  cursor: pointer;
+  position: absolute;
+
+  height: 80px;
+  width: 80px;
+  right: 1%;
+  bottom: 2%;
+}
+.display {
+  display: block !important;
+}
