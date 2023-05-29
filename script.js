@@ -78,6 +78,7 @@ let dropVillainInterval;
 let animateUs;
 let villains = [];
 let baseLife;
+let baseShoot;
 let lifeCountBase;
 let stars = [];
 let powerUp2 = [];
@@ -88,10 +89,12 @@ let villainDropBool;
 let villainBool = true;
 let speedBool;
 let villainDropProcessBool = true;
+let bool1 = true;
+let bool2 = false;
 let gameOverBool = false;
 let booldrop1 = false;
 let booldrop2 = false;
-
+let baseShootBool = true;
 let booldrop3 = false;
 
 let bulletBool = false;
@@ -213,15 +216,36 @@ function Player(x, y, w, h, image) {
 function Base(x, y, w, h) {
   this.x = x;
   this.y = y;
-
+  this.alpha = 0.03;
   this.w = w;
   this.h = h;
-
+  this.angle = 0;
   this.draw = function () {
+    c.save();
+    c.translate(this.x + this.w / 2, this.y + this.h / 2);
+    c.rotate(this.angle);
+    c.beginPath();
+    c.roundRect(0, -15, 130, 30, 5);
+    c.fillStyle = "grey";
+    c.fill();
+    c.restore();
+    c.closePath();
     c.drawImage(base, this.x, this.y, this.w, this.h);
+    c.globalAlpha = this.alpha;
+    c.beginPath();
+    c.arc(this.x + this.w / 2, this.y + this.h / 2, 350, 0, Math.PI * 2, false);
+    c.fillStyle = "grey";
+    c.strokeStyle = "white";
+    c.lineWidth = 3;
+    c.fill();
+    c.stroke();
+    c.closePath();
+    c.globalAlpha = 1;
   };
 
   this.update = function () {
+    c;
+
     this.draw();
   };
 }
@@ -575,7 +599,7 @@ const VillainSpawn = () => {
     }, ispeed);
     setTimeout(() => {
       if (!speedBool) ispeed -= 50;
-      if (ispeed < 600) {
+      if (ispeed < 500) {
         speedBool = true;
       }
     }, 3000);
@@ -727,10 +751,71 @@ setInterval(() => {
   }
 }, 50000);
 
+setInterval(() => {
+  gsap.to(homeBase, {
+    alpha: 0.09,
+  });
+  setTimeout(() => {
+    gsap.to(homeBase, {
+      alpha: 0.02,
+    });
+  }, 500);
+}, 5000);
+
+baseShoot = setInterval(() => {
+  if (baseShootBool) {
+    for (let i = 0; i < villains.length; i++) {
+      if (
+        distance(
+          villains[i].x,
+          villains[i].y,
+          homeBase.x + homeBase.w / 2,
+          homeBase.y + homeBase.h / 2
+        ) <= 400
+      ) {
+        console.log("hi");
+        let angle = Math.atan2(
+          villains[i].y + villains[i].w / 2 - (homeBase.y + homeBase.h / 2),
+          villains[i].x + villains[i].h / 2 - (homeBase.x + homeBase.w / 2)
+        );
+        let angleConst =
+          Angle(
+            villains[i].x + villains[i].w / 2,
+            villains[i].y + villains[i].h / 2,
+            homeBase.x + homeBase.w / 2,
+            homeBase.y + homeBase.h / 2
+          ) +
+          2 * Math.PI;
+        const velocity = {
+          x: Math.cos(angle) * 30,
+          y: Math.sin(angle) * 30,
+        };
+        bullets.push(
+          new Bullets(
+            homeBase.x + homeBase.w / 2,
+            homeBase.y + homeBase.h / 2,
+            80,
+            8,
+            {
+              x: velocity.x,
+              y: velocity.y,
+            },
+            bulletImage,
+            angleConst
+          )
+        );
+        shootSound.currentTime = 0;
+        shootSound.play();
+        break;
+      }
+    }
+  }
+}, 1000);
+
 function init() {
   powerUp1 = [];
   baseLife = new Life(50, 50, 400, 30, "grey");
-  ispeed = 2000;
+  ispeed = 1500;
   animateUs;
   playerLife;
   playerLifeActual;
@@ -757,6 +842,9 @@ function init() {
   booldroppedfor1 = true;
   booldroppedfor2 = true;
   booldroppedfor3 = true;
+  bool1 = true;
+  bool2 = false;
+  baseShootBool = true;
 
   boolPlsDrop = false;
   villainDropProcessBool = true;
@@ -788,8 +876,8 @@ function init() {
   homeBase = new Base(
     centreX - 150 / 2,
     canvas.height - canvas.height / 3,
-    150,
-    150
+    200,
+    200
   );
   for (let i = 0; i < 100; i++) {
     stars[i] = new Stars(0.8, 0.8, "rgb(255,255,255,0.9)", 0.3);
@@ -820,7 +908,7 @@ const animate = () => {
   for (let i = 0; i < stars.length; i++) {
     stars[i].update();
   }
-  orb.update();
+  // orb.update();
 
   if (boolPlsDrop) {
     if (
@@ -1027,7 +1115,12 @@ const animate = () => {
     for (let j = 0; j < bullets.length; j++) {
       if (villains[i] !== undefined && bullets[j] !== undefined) {
         if (
-          distance(bullets[j].x, bullets[j].y, villains[i].x, villains[i].y) <
+          distance(
+            bullets[j].x,
+            bullets[j].y,
+            villains[i].x + villains[i].w / 2,
+            villains[i].y + villains[i].h / 2
+          ) <
           bullets[j].radius + villains[i].radius
         ) {
           villains.splice(i, 1);
@@ -1069,8 +1162,26 @@ const animate = () => {
         }
       }
     }
+    if (villains[i]) {
+      if (
+        distance(
+          villains[i].x,
+          villains[i].y,
+          homeBase.x + homeBase.w / 2,
+          homeBase.y + homeBase.h / 2
+        ) <= 400
+      ) {
+        gsap.to(homeBase, {
+          angle: Angle(
+            homeBase.x + homeBase.w / 2,
+            homeBase.y + homeBase.h / 2,
+            villains[i].x + villains[i].w / 2,
+            villains[i].y + villains[i].h / 2
+          ),
+        });
+      }
+    }
   }
-
   //BASE UPDATE//
   baseLife = new Life(50, 50, 400, 30, "grey", false);
   baseLife.update();
@@ -1212,6 +1323,7 @@ document.querySelector(".pause").addEventListener("click", () => {
   cancelAnimationFrame(animateit);
   villainBool = false;
   villainDropProcessBool = false;
+  baseShootBool = false;
   bgMusic.pause();
   document.querySelector(".pause").classList.remove("display");
   document.querySelector(".resume").classList.add("display");
@@ -1219,8 +1331,12 @@ document.querySelector(".pause").addEventListener("click", () => {
 document.querySelector(".resume").addEventListener("click", () => {
   console.log("hi");
   animateit = requestAnimationFrame(animate);
+
   villainBool = true;
+
   VillainSpawn();
+  baseShootBool = true;
+
   villainDropProcessBool = true;
   bgMusic.play();
   bgMusic.volume = 0.4;
