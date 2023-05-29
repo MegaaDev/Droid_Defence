@@ -56,7 +56,7 @@ let musicBool = true;
 let bullets;
 let bulletsEnemyBot;
 let powerUp1 = [];
-let ispeed;
+let ispeed = 1500;
 let orb;
 let playerLife;
 let text;
@@ -122,21 +122,50 @@ addEventListener("resize", () => {
     highScore = score;
     localStorage.setItem("high--score", highScore);
   }
-  cancelAnimationFrame(animateit);
-  villainBool = false;
-  villainDropProcessBool = false;
-  bgMusic.pause();
-  setTimeout(() => {
-    villainBool = true;
-    villainDropProcessBool = true;
-    VillainSpawn();
+  init();
 
-    init();
-    bgMusic.play();
-    bgMusic.volume = 0.4;
+  // base.resize()
+  //   cancelAnimationFrame(animateit);
+  //   villainBool = false;
+  //   clearInterval(animateUs);
 
-    animateit = requestAnimationFrame(animate);
-  }, 1000);
+  //   villainDropProcessBool = false;
+  //   bgMusic.pause();
+  //   setTimeout(() => {
+  //     villainBool = true;
+  //     villainDropProcessBool = true;
+
+  //     animateUs = setInterval(() => {
+  //       let x;
+  //       let y;
+  //       x = Math.random() * canvas.width;
+  //       y = -40;
+  //       let h;
+  //       let w;
+  //       h = 50;
+  //       w = 50;
+  //       let angle = Math.atan2(
+  //         homeBase.y + homeBase.h / 2 - (y + h / 2),
+  //         homeBase.x + homeBase.w / 2 - (x + w / 2)
+  //       );
+  //       // console.log(angle);
+
+  //       let velocity = {
+  //         x: Math.cos(angle) * 2,
+  //         y: Math.sin(angle) * 2,
+  //       };
+  //       villains.push(
+  //         new Villain(x, y, w, h, {
+  //           x: velocity.x,
+  //           y: velocity.y,
+  //         })
+  //       );
+  //     }, ispeed);
+  //     bgMusic.play();
+  //     bgMusic.volume = 0.4;
+
+  //     animateit = requestAnimationFrame(animate);
+  //   }, 1000);
 });
 
 //DISTANCE//
@@ -216,7 +245,7 @@ function Player(x, y, w, h, image) {
 function Base(x, y, w, h) {
   this.x = x;
   this.y = y;
-  this.alpha = 0.03;
+  this.alpha = 0.05;
   this.w = w;
   this.h = h;
   this.angle = 0;
@@ -244,9 +273,11 @@ function Base(x, y, w, h) {
   };
 
   this.update = function () {
-    c;
-
     this.draw();
+  };
+  this.resize = function (x, y) {
+    this.x = x;
+    this.y = y;
   };
 }
 
@@ -568,45 +599,41 @@ function BoosterDrop(x, y, w, h, image, dy) {
 }
 
 //SPAWN VILLAINS//
-const VillainSpawn = () => {
-  if (villainBool) {
-    setTimeout(() => {
-      animateUs = requestAnimationFrame(VillainSpawn);
-      let x;
-      let y;
-      x = Math.random() * canvas.width;
-      y = -40;
-      let h;
-      let w;
-      h = 50;
-      w = 50;
-      let angle = Math.atan2(
-        homeBase.y + homeBase.h / 2 - (y + h / 2),
-        homeBase.x + homeBase.w / 2 - (x + w / 2)
-      );
-      // console.log(angle);
 
-      let velocity = {
-        x: Math.cos(angle) * 2,
-        y: Math.sin(angle) * 2,
-      };
-      villains.push(
-        new Villain(x, y, w, h, {
-          x: velocity.x,
-          y: velocity.y,
-        })
-      );
-    }, ispeed);
-    setTimeout(() => {
-      if (!speedBool) ispeed -= 50;
-      if (ispeed < 500) {
-        speedBool = true;
-      }
-    }, 3000);
-  }
-};
+if (villainBool) {
+  animateUs = setInterval(() => {
+    let x;
+    let y;
+    x = Math.random() * canvas.width;
+    y = -40;
+    let h;
+    let w;
+    h = 50;
+    w = 50;
+    let angle = Math.atan2(
+      homeBase.y + homeBase.h / 2 - (y + h / 2),
+      homeBase.x + homeBase.w / 2 - (x + w / 2)
+    );
+    // console.log(angle);
 
-VillainSpawn();
+    let velocity = {
+      x: Math.cos(angle) * 2,
+      y: Math.sin(angle) * 2,
+    };
+    villains.push(
+      new Villain(x, y, w, h, {
+        x: velocity.x,
+        y: velocity.y,
+      })
+    );
+  }, ispeed);
+  setInterval(() => {
+    if (!speedBool) ispeed -= 50;
+    if (ispeed < 500) {
+      speedBool = true;
+    }
+  }, 3000);
+}
 
 //VILLAIN BOT SPAWN//
 const dropVillain = () => {
@@ -757,7 +784,7 @@ setInterval(() => {
   });
   setTimeout(() => {
     gsap.to(homeBase, {
-      alpha: 0.02,
+      alpha: 0.05,
     });
   }, 500);
 }, 5000);
@@ -773,44 +800,60 @@ baseShoot = setInterval(() => {
           homeBase.y + homeBase.h / 2
         ) <= 400
       ) {
-        console.log("hi");
-        let angle = Math.atan2(
-          villains[i].y + villains[i].w / 2 - (homeBase.y + homeBase.h / 2),
-          villains[i].x + villains[i].h / 2 - (homeBase.x + homeBase.w / 2)
-        );
-        let angleConst =
-          Angle(
-            villains[i].x + villains[i].w / 2,
-            villains[i].y + villains[i].h / 2,
-            homeBase.x + homeBase.w / 2,
-            homeBase.y + homeBase.h / 2
-          ) +
-          2 * Math.PI;
-        const velocity = {
-          x: Math.cos(angle) * 30,
-          y: Math.sin(angle) * 30,
-        };
-        bullets.push(
-          new Bullets(
+        gsap.to(homeBase, {
+          angle: Angle(
             homeBase.x + homeBase.w / 2,
             homeBase.y + homeBase.h / 2,
-            80,
-            8,
-            {
-              x: velocity.x,
-              y: velocity.y,
-            },
-            bulletImage,
-            angleConst
-          )
-        );
-        shootSound.currentTime = 0;
-        shootSound.play();
+            villains[i].x + villains[i].w / 2,
+            villains[i].y + villains[i].h / 2
+          ),
+        });
+
+        setTimeout(() => {
+          if (villains[i]) {
+            let angle = Math.atan2(
+              villains[i].y + villains[i].w / 2 - (homeBase.y + homeBase.h / 2),
+              villains[i].x + villains[i].h / 2 - (homeBase.x + homeBase.w / 2)
+            );
+            let angleConst =
+              Angle(
+                villains[i].x + villains[i].w / 2,
+                villains[i].y + villains[i].h / 2,
+                homeBase.x + homeBase.w / 2,
+                homeBase.y + homeBase.h / 2
+              ) +
+              2 * Math.PI;
+            const velocity = {
+              x: Math.cos(angle) * 30,
+              y: Math.sin(angle) * 30,
+            };
+            bullets.push(
+              new Bullets(
+                homeBase.x + homeBase.w / 2,
+                homeBase.y + homeBase.h / 2,
+                80,
+                8,
+                {
+                  x: velocity.x,
+                  y: velocity.y,
+                },
+                bulletImage,
+                angleConst
+              )
+            );
+            boolAfterShoot = true;
+            shootSound.currentTime = 0;
+            shootSound.play();
+          }
+        }, 300);
+
+        console.log("hi");
+
         break;
       }
     }
   }
-}, 1000);
+}, 800);
 
 function init() {
   powerUp1 = [];
@@ -824,7 +867,6 @@ function init() {
   lifeCountPlayer = 70;
   lifeCountVillain = 70;
   lifeCountBase = 400;
-  score = 0;
 
   villainBotSize = 30;
   bullets = [];
@@ -864,8 +906,14 @@ function init() {
     },
   };
 
+  homeBase = new Base(
+    centreX - 150 / 2,
+    canvas.height - canvas.height / 2.8,
+    200,
+    200
+  );
   player = new Player(
-    randomRangeGenerator(canvas.width / 8, canvas.width - canvas.width / 8),
+    randomRangeGenerator1(),
 
     canvas.height - canvas.height / 10,
     90,
@@ -873,12 +921,6 @@ function init() {
     playerImage
   );
 
-  homeBase = new Base(
-    centreX - 150 / 2,
-    canvas.height - canvas.height / 3,
-    200,
-    200
-  );
   for (let i = 0; i < 100; i++) {
     stars[i] = new Stars(0.8, 0.8, "rgb(255,255,255,0.9)", 0.3);
   }
@@ -891,10 +933,11 @@ function init() {
   /////
 
   ////
+  orb = new Orb(600, 600, spaceOrb, 0.2);
+  text = new Text(canvas.width - canvas.width / 6, 70);
+  highScoreText = new TextForHighscore(canvas.width - canvas.width / 6, 130);
 }
-orb = new Orb(600, 600, spaceOrb, 0.2);
-text = new Text(canvas.width - canvas.width / 6, 70);
-highScoreText = new TextForHighscore(canvas.width - canvas.width / 6, 130);
+
 init();
 
 //MAIN GAME LOOP//
@@ -919,74 +962,80 @@ const animate = () => {
     }
   }
 
-  if (booldrop1)
+  if (booldrop1) {
     for (let i = 0; i < powerUp1.length; i++) {
       powerUp1[i].update();
       if (powerUp1[i].y - powerUp1[i].h / 2 > canvas.height) {
         powerUp1.splice(i, 1);
       }
-
-      if (
-        distance(
-          player.x,
-          player.y,
-          powerUp1[i].x + powerUp1[i].w / 2,
-          powerUp1[i].y + powerUp1[i].h / 2
-        ) <
-        player.radius + distance(powerUp1[i].w / 2, powerUp1[i].h / 2, 0, 0)
-      ) {
-        bulletBool = true;
-        bulletPowerUp();
-        setTimeout(() => {
-          bulletBool = false;
-        }, 6000);
-        powerUp1.splice(i, 1);
-        boosterSound.play();
+      if (powerUp1[i]) {
+        if (
+          distance(
+            player.x,
+            player.y,
+            powerUp1[i].x + powerUp1[i].w / 2,
+            powerUp1[i].y + powerUp1[i].h / 2
+          ) <
+          player.radius + distance(powerUp1[i].w / 2, powerUp1[i].h / 2, 0, 0)
+        ) {
+          bulletBool = true;
+          bulletPowerUp();
+          setTimeout(() => {
+            bulletBool = false;
+          }, 8000);
+          powerUp1.splice(i, 1);
+          boosterSound.play();
+        }
       }
     }
+  }
 
-  if (booldrop2)
+  if (booldrop2) {
     for (let i = 0; i < powerUp2.length; i++) {
       powerUp2[i].update();
       if (powerUp2[i].y - powerUp2[i].h / 2 > canvas.height) {
         powerUp2.splice(i, 1);
       }
-
-      if (
-        distance(
-          player.x,
-          player.y,
-          powerUp2[i].x + powerUp2[i].w / 2,
-          powerUp2[i].y + powerUp2[i].h / 2
-        ) <
-        player.radius + distance(powerUp2[i].w / 2, powerUp2[i].h / 2, 0, 0)
-      ) {
-        powerUp2.splice(i, 1);
-        player.life = 80;
-        boosterSound.play();
+      if (powerUp2[i]) {
+        if (
+          distance(
+            player.x,
+            player.y,
+            powerUp2[i].x + powerUp2[i].w / 2,
+            powerUp2[i].y + powerUp2[i].h / 2
+          ) <
+          player.radius + distance(powerUp2[i].w / 2, powerUp2[i].h / 2, 0, 0)
+        ) {
+          powerUp2.splice(i, 1);
+          player.life = 80;
+          boosterSound.play();
+        }
       }
     }
-  if (booldrop3)
+  }
+  if (booldrop3) {
     for (let i = 0; i < powerUp3.length; i++) {
       powerUp3[i].update();
       if (powerUp3[i].y - powerUp3[i].h / 2 > canvas.height) {
         powerUp3.splice(i, 1);
       }
-
-      if (
-        distance(
-          player.x,
-          player.y,
-          powerUp3[i].x + powerUp3[i].w / 2,
-          powerUp3[i].y + powerUp3[i].h / 2
-        ) <
-        player.radius + distance(powerUp3[i].w / 2, powerUp3[i].h / 2, 0, 0)
-      ) {
-        powerUp3.splice(i, 1);
-        lifeCountBase = 400;
-        boosterSound.play();
+      if (powerUp3[i]) {
+        if (
+          distance(
+            player.x,
+            player.y,
+            powerUp3[i].x + powerUp3[i].w / 2,
+            powerUp3[i].y + powerUp3[i].h / 2
+          ) <
+          player.radius + distance(powerUp3[i].w / 2, powerUp3[i].h / 2, 0, 0)
+        ) {
+          powerUp3.splice(i, 1);
+          lifeCountBase = 400;
+          boosterSound.play();
+        }
       }
     }
+  }
   //UPDATE FUNCTIONS//
 
   for (let i = 0; i < bullets.length; i++) {
@@ -1171,14 +1220,6 @@ const animate = () => {
           homeBase.y + homeBase.h / 2
         ) <= 400
       ) {
-        gsap.to(homeBase, {
-          angle: Angle(
-            homeBase.x + homeBase.w / 2,
-            homeBase.y + homeBase.h / 2,
-            villains[i].x + villains[i].w / 2,
-            villains[i].y + villains[i].h / 2
-          ),
-        });
       }
     }
   }
@@ -1202,7 +1243,7 @@ const animate = () => {
     setTimeout(() => {
       villainBool = true;
       villainDropProcessBool = true;
-      VillainSpawn();
+      score = 0;
 
       init();
       bgMusic.play();
@@ -1324,6 +1365,7 @@ document.querySelector(".pause").addEventListener("click", () => {
   villainBool = false;
   villainDropProcessBool = false;
   baseShootBool = false;
+  clearInterval(animateUs);
   bgMusic.pause();
   document.querySelector(".pause").classList.remove("display");
   document.querySelector(".resume").classList.add("display");
@@ -1333,15 +1375,54 @@ document.querySelector(".resume").addEventListener("click", () => {
   animateit = requestAnimationFrame(animate);
 
   villainBool = true;
+  animateUs = setInterval(() => {
+    let x;
+    let y;
+    x = Math.random() * canvas.width;
+    y = -40;
+    let h;
+    let w;
+    h = 50;
+    w = 50;
+    let angle = Math.atan2(
+      homeBase.y + homeBase.h / 2 - (y + h / 2),
+      homeBase.x + homeBase.w / 2 - (x + w / 2)
+    );
+    // console.log(angle);
 
-  VillainSpawn();
+    let velocity = {
+      x: Math.cos(angle) * 2,
+      y: Math.sin(angle) * 2,
+    };
+    villains.push(
+      new Villain(x, y, w, h, {
+        x: velocity.x,
+        y: velocity.y,
+      })
+    );
+  }, ispeed);
+
   baseShootBool = true;
 
   villainDropProcessBool = true;
   bgMusic.play();
   bgMusic.volume = 0.4;
-  // animateMe = requestAnimationFrame(bulletPowerUp);
-  // animateUs = requestAnimationFrame(VillainSpawn);
+
   document.querySelector(".resume").classList.remove("display");
   document.querySelector(".pause").classList.add("display");
 });
+function randomRangeGenerator1() {
+  let randomNumber;
+  for (let i = 0; i < 1; i++) {
+    randomNumber =
+      Math.random() * (canvas.width - canvas.width / 8 - canvas.width / 8) +
+      canvas.width / 8;
+    if (
+      randomNumber <= canvas.width / 2 + homeBase.w / 2 + 50 &&
+      randomNumber >= canvas.width / 2 - homeBase.w / 2 - 50
+    ) {
+      i--;
+    }
+  }
+  return randomNumber;
+}
