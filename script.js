@@ -991,7 +991,7 @@ BossInterval = setInterval(() => {
     dropHomingFunction();
   }, 5000);
   clearInterval(BossInterval);
-}, 10000);
+}, 50000);
 
 function init() {
   powerUp1 = [];
@@ -1149,7 +1149,7 @@ const animate = () => {
                 dropHomingFunction();
               }, 5000);
               clearInterval(BossInterval);
-            }, 10000);
+            }, 50000);
           }
         }
       }
