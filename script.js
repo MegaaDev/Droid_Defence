@@ -16,6 +16,8 @@ const spaceOrb = document.querySelector(".spaceOrb");
 const powerupDropImg1 = document.querySelector(".powerupDropImg1");
 const powerupDropImg2 = document.querySelector(".powerupDropImg2");
 const powerupDropImg3 = document.querySelector(".powerupDropImg3");
+const enemybothoming = document.querySelector(".enemybothoming");
+const homingBomb = document.querySelector(".homingBomb");
 
 const booster1 = document.querySelector(".booster1");
 const booster2 = document.querySelector(".booster2");
@@ -49,8 +51,11 @@ let player;
 let playerSize;
 let villainbot;
 let villainbots;
+let BossInterval;
+let bosshomingmissile;
 let villainBotSize;
 let fpsCount;
+let homingBotVillain = [];
 let move;
 let musicBool = true;
 let bullets;
@@ -58,8 +63,13 @@ let bulletsEnemyBot;
 let powerUp1 = [];
 let ispeed = 1500;
 let orb;
+let homingBot;
+
 let playerLife;
 let text;
+let dropBossBool = false;
+
+let boolhoming = false;
 let highScoreText;
 let powerupdrop1;
 let score = 0;
@@ -469,6 +479,111 @@ function VillainBot(x, y, w, h, image) {
   };
 }
 
+function VillainBotHoming(x, y, w, h, image) {
+  this.x = x;
+  this.y = y;
+  this.dx = Math.random() < 0.5 ? 1 : -1;
+  this.dy = 1;
+  this.h = h;
+  this.w = w;
+  this.life = 400;
+  this.image = image;
+  this.angle = 0;
+  this.radius = this.h / 2;
+  this.villainDropBool1 = false;
+  if (Math.random() < 0.5) {
+    this.choice = true;
+  }
+
+  this.draw = function () {
+    c.save();
+    c.translate(this.x, this.y);
+    c.rotate(this.angle + Math.PI);
+    c.drawImage(this.image, -this.w / 2, -this.h / 2, this.w, this.h);
+    c.restore();
+    c.beginPath();
+
+    c.roundRect(50, 100, 400, 30, 10);
+    c.fillStyle = "grey";
+    c.fill();
+    c.closePath();
+    c.beginPath();
+    c.roundRect(50, 100, this.life, 30, 10);
+    c.fillStyle = "red";
+    c.fill();
+  };
+
+  this.update = function () {
+    this.angle =
+      Angle(
+        this.x,
+        this.y,
+        homeBase.x + homeBase.w / 2,
+        homeBase.y + homeBase.h / 2
+      ) +
+      Math.PI / 2;
+    if (
+      this.x - this.radius + this.dx < 50 ||
+      this.x + this.radius + this.dx > canvas.width - canvas.width / 5
+    ) {
+      this.dx = -this.dx;
+    }
+    if (
+      this.y - this.radius + this.dy < canvas.height / 20 &&
+      this.villainDropBool1
+    ) {
+      this.dy = -this.dy;
+    }
+    if (this.y + this.radius + this.dy > canvas.height / 3.5) {
+      this.villainDropBool1 = true;
+      this.dy = -this.dy;
+    }
+
+    this.x += this.dx;
+    this.y += this.dy;
+
+    this.draw();
+  };
+}
+
+function BulletsHoming(x, y) {
+  this.x = x;
+  this.y = y;
+  this.dx = Math.cos(this.angle) * 3;
+  this.dy = Math.sin(this.angle) * 3;
+  this.w = 60;
+  this.h = 60;
+  this.angle = 0;
+  this.radius = this.w / 2;
+
+  this.draw = function () {
+    c.save();
+    c.translate(this.x, this.y);
+    c.rotate(this.angle - (3 * Math.PI) / 2);
+    c.drawImage(homingBomb, -this.w / 2, -this.h / 2, this.w, this.h);
+    c.restore();
+    // c.beginPath();
+    // c.fillStyle = "red";
+    // c.arc(this.x, this.y, 20, 0, Math.PI * 2, false);
+    // c.fill();
+    // c.closePath();
+  };
+
+  this.update = function () {
+    this.angle = Angle(
+      this.x + this.w / 2,
+      this.y + this.h / 2,
+      player.x + player.w / 2,
+      player.y + player.h / 2
+    );
+    this.dx = Math.cos(this.angle) * 4.5;
+    this.dy = Math.sin(this.angle) * 4.5;
+    this.y += this.dy;
+    this.x += this.dx;
+    this.draw();
+  };
+}
+
 function Life(x, y, w, h, color, bool) {
   this.x = x;
   this.y = y;
@@ -821,8 +936,7 @@ baseShoot = setInterval(() => {
                 villains[i].y + villains[i].h / 2,
                 homeBase.x + homeBase.w / 2,
                 homeBase.y + homeBase.h / 2
-              ) +
-              2 * Math.PI;
+              ) + Math.PI;
             const velocity = {
               x: Math.cos(angle) * 30,
               y: Math.sin(angle) * 30,
@@ -847,13 +961,37 @@ baseShoot = setInterval(() => {
           }
         }, 300);
 
-        console.log("hi");
-
         break;
       }
     }
   }
-}, 800);
+}, 900);
+const dropHomingFunction = () => {
+  // setTimeout(() => {
+  homingBotVillain.push(new BulletsHoming(homingBot[0].x, homingBot[0].y));
+  boolhoming = true;
+  // }, 6000);
+};
+const dropBoss = () => {
+  homingBot.push(
+    new VillainBotHoming(
+      randomRangeGenerator(canvas.width / 8, canvas.width - canvas.width / 4),
+      -270,
+      270,
+      270,
+      enemybothoming
+    )
+  );
+  dropBossBool = true;
+};
+
+BossInterval = setInterval(() => {
+  dropBoss();
+  bosshomingmissile = setInterval(() => {
+    dropHomingFunction();
+  }, 5000);
+  clearInterval(BossInterval);
+}, 10000);
 
 function init() {
   powerUp1 = [];
@@ -872,13 +1010,17 @@ function init() {
   bullets = [];
   bulletsEnemyBot = [];
   villainbots = [];
+  homingBot = [];
   powerUp2 = [];
   powerUp3 = [];
   count2 = 15000;
   villains = [];
+  homingBotVillain = [];
   //BOOLS//
   booldrop1 = false;
+  dropBossBool = false;
   bulletBool = false;
+  boolhoming = false;
   villainBool = true;
   gameOverBool = false;
   booldroppedfor1 = true;
@@ -933,6 +1075,7 @@ function init() {
   /////
 
   ////
+
   orb = new Orb(600, 600, spaceOrb, 0.2);
   text = new Text(canvas.width - canvas.width / 6, 70);
   highScoreText = new TextForHighscore(canvas.width - canvas.width / 6, 130);
@@ -953,12 +1096,63 @@ const animate = () => {
   }
   // orb.update();
 
+  if (boolhoming) {
+    for (let i = 0; i < homingBotVillain.length; i++) {
+      homingBotVillain[i].update();
+
+      for (let j = 0; j < bullets.length; j++) {
+        if (
+          distance(
+            homingBotVillain[i].x + homingBotVillain[i].w / 2,
+            homingBotVillain[i].y + homingBotVillain[i].h / 2,
+            bullets[j].x,
+            bullets[j].y
+          ) <
+          distance(homingBotVillain[i].w / 2, homingBotVillain[i].h / 2, 0, 0) +
+            distance(bullets[j].w / 2, bullets[j].h / 2, 0, 0) -
+            40
+        ) {
+          homingBotVillain.splice(i, 1);
+          bullets.splice(j, 1);
+        }
+      }
+    }
+  }
   if (boolPlsDrop) {
     if (
       (powerupdrop1.x < canvas.width && powerupdrop1.number === 0) ||
       (powerupdrop1.x > 0 && powerupdrop1.number === 1)
     ) {
       powerupdrop1.update();
+    }
+  }
+
+  if (dropBossBool) {
+    for (let i = 0; i < homingBot.length; i++) {
+      homingBot[i].update();
+      for (let j = 0; j < bullets.length; j++) {
+        if (
+          distance(homingBot[i].x, homingBot[i].y, bullets[j].x, bullets[j].y) <
+          100
+        ) {
+          console.log("colloidedsirr");
+          homingBot[i].life -= 10;
+          bullets.splice(j, 1);
+
+          if (homingBot[i].life === 0) {
+            homingBot.splice(i, 1);
+            dropBossBool = false;
+
+            BossInterval = setInterval(() => {
+              dropBoss();
+              bosshomingmissile = setInterval(() => {
+                dropHomingFunction();
+              }, 5000);
+              clearInterval(BossInterval);
+            }, 10000);
+          }
+        }
+      }
     }
   }
 
@@ -1370,6 +1564,16 @@ document.querySelector(".pause").addEventListener("click", () => {
   document.querySelector(".pause").classList.remove("display");
   document.querySelector(".resume").classList.add("display");
 });
+// window.addEventListener("blur", () => {
+//   cancelAnimationFrame(animateit);
+//   villainBool = false;
+//   villainDropProcessBool = false;
+//   baseShootBool = false;
+//   clearInterval(animateUs);
+//   bgMusic.pause();
+//   document.querySelector(".pause").classList.remove("display");
+//   document.querySelector(".resume").classList.add("display");
+// });
 document.querySelector(".resume").addEventListener("click", () => {
   console.log("hi");
   animateit = requestAnimationFrame(animate);
@@ -1411,6 +1615,47 @@ document.querySelector(".resume").addEventListener("click", () => {
   document.querySelector(".resume").classList.remove("display");
   document.querySelector(".pause").classList.add("display");
 });
+// window.addEventListener("focus", () => {
+//   console.log("hi");
+//   animateit = requestAnimationFrame(animate);
+
+//   villainBool = true;
+//   animateUs = setInterval(() => {
+//     let x;
+//     let y;
+//     x = Math.random() * canvas.width;
+//     y = -40;
+//     let h;
+//     let w;
+//     h = 50;
+//     w = 50;
+//     let angle = Math.atan2(
+//       homeBase.y + homeBase.h / 2 - (y + h / 2),
+//       homeBase.x + homeBase.w / 2 - (x + w / 2)
+//     );
+//     // console.log(angle);
+
+//     let velocity = {
+//       x: Math.cos(angle) * 2,
+//       y: Math.sin(angle) * 2,
+//     };
+//     villains.push(
+//       new Villain(x, y, w, h, {
+//         x: velocity.x,
+//         y: velocity.y,
+//       })
+//     );
+//   }, ispeed);
+
+//   baseShootBool = true;
+
+//   villainDropProcessBool = true;
+//   bgMusic.play();
+//   bgMusic.volume = 0.4;
+
+//   document.querySelector(".resume").classList.remove("display");
+//   document.querySelector(".pause").classList.add("display");
+// });
 function randomRangeGenerator1() {
   let randomNumber;
   for (let i = 0; i < 1; i++) {
