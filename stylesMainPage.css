@@ -45,7 +45,7 @@ img {
   font-size: 3rem;
   letter-spacing: 10px;
   cursor: pointer;
-  transition: all 1s;
+  transition: all 0.4s ease 0s;
 }
 a {
   text-decoration: none;
@@ -53,6 +53,6 @@ a {
 }
 
 .button:hover {
-  /* background: linear-gradient(to top, rgb(45, 224, 199), rgb(54, 85, 135)); */
-  height: 160px;
+  background: linear-gradient(to bottom, rgb(98, 255, 234), rgb(54, 85, 135));
+  transform: translate(-50%, -50%) translateY(-10px);
 }
