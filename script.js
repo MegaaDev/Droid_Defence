@@ -1432,7 +1432,9 @@ const animate = () => {
               homingBot.splice(i, 1);
               dropBossBool = false;
               villainDropProcessBool = true;
-
+              clearInterval(bosshomingmissile);
+              clearInterval(bosshomingmissile1);
+              redballbool = false;
               BossInterval = setInterval(() => {
                 villainDropProcessBool = false;
 
@@ -1857,9 +1859,10 @@ document.querySelector(".pause").addEventListener("click", () => {
   cancelAnimationFrame(animateit);
   villainBool = false;
   villainDropProcessBool = false;
-  cancelAnimationFrame(BossInterval);
-  cancelAnimationFrame(bosshomingmissile);
-  cancelAnimationFrame(bosshomingmissile1);
+  clearInterval(BossInterval);
+  redballbool = false;
+  clearInterval(bosshomingmissile);
+  clearInterval(bosshomingmissile1);
   baseShootBool = false;
   clearInterval(animateUs);
   bgMusic.pause();
