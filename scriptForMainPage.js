@@ -3,7 +3,10 @@ const c = canvas.getContext("2d");
 let stars = [];
 canvas.width = window.innerWidth;
 canvas.height = window.innerWidth;
-
+addEventListener("resize", () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerWidth;
+});
 function Stars(w, h, color, dy) {
   this.x = Math.random() * canvas.width;
   this.y = Math.random() * canvas.height;
