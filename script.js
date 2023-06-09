@@ -18,15 +18,17 @@ const powerupDropImg2 = document.querySelector(".powerupDropImg2");
 const powerupDropImg3 = document.querySelector(".powerupDropImg3");
 const enemybothoming = document.querySelector(".enemybothoming");
 const homingBomb = document.querySelector(".homingBomb");
-
+const explosionSprite = document.querySelector(".explosionSprite");
 const booster1 = document.querySelector(".booster1");
 const booster2 = document.querySelector(".booster2");
 const booster3 = document.querySelector(".booster3");
+const explosionSpriteHoming = document.querySelector(".explosionSpriteHoming");
 
 //AUDIO//
 const bgMusic = new Audio("bgMusic.mp3");
 const shootSound = new Audio("shoot.mp3");
 const boosterSound = new Audio("boosterSound.mp3");
+const explosion = new Audio("explosion.wav");
 
 //BACKGROUND MUSIC LOOP//
 bgMusic.addEventListener(
@@ -52,6 +54,7 @@ let playerSize;
 let villainbot;
 let villainbots;
 let BossInterval;
+let bosshomingmissile1;
 let bosshomingmissile;
 let villainBotSize;
 let fpsCount;
@@ -59,16 +62,16 @@ let homingBotVillain = [];
 let move;
 let musicBool = true;
 let bullets;
+let baseShootit;
 let bulletsEnemyBot;
 let powerUp1 = [];
 let ispeed = 1500;
 let orb;
 let homingBot;
-
 let playerLife;
 let text;
 let dropBossBool = false;
-
+let redballbool = false;
 let boolhoming = false;
 let highScoreText;
 let powerupdrop1;
@@ -92,7 +95,11 @@ let baseShoot;
 let lifeCountBase;
 let stars = [];
 let powerUp2 = [];
+let spritenewHoming = [];
+
 let powerUp3 = [];
+let redball = [];
+let spritenew = [];
 let animateMe;
 //VARIABLE BOOLS//
 let villainDropBool;
@@ -291,6 +298,67 @@ function Base(x, y, w, h) {
   };
 }
 
+function SpriteHoming(x, y) {
+  this.x = x;
+  this.y = y;
+
+  this.w = 50;
+  this.h = 50;
+
+  this.radius = this.w / 2;
+  this.image = explosionSpriteHoming;
+  this.frames = 0;
+
+  this.draw = function () {
+    c.drawImage(
+      this.image,
+      307.42 * this.frames,
+      0,
+      307.42,
+      350,
+      this.x,
+      this.y,
+      this.w,
+      this.h
+    );
+  };
+
+  this.update = function () {
+    this.frames++;
+    if (this.frames <= 7) this.draw();
+  };
+}
+function Sprite(x, y) {
+  this.x = x;
+  this.y = y;
+
+  this.w = 50;
+  this.h = 50;
+
+  this.radius = this.w / 2;
+  this.image = explosionSprite;
+  this.frames = 0;
+
+  this.draw = function () {
+    c.drawImage(
+      this.image,
+      307.42 * this.frames,
+      0,
+      307.42,
+      350,
+      this.x,
+      this.y,
+      this.w,
+      this.h
+    );
+  };
+
+  this.update = function () {
+    this.frames++;
+    if (this.frames <= 7) this.draw();
+  };
+}
+
 function Bullets(x, y, w, h, velocity, image, angle) {
   this.x = x;
   this.y = y;
@@ -400,6 +468,28 @@ function BulletsForEnemy(x, y, w, h, velocity, image, angle) {
 function Angle(x, y, otherx, othery) {
   let angle = Math.atan2(othery - y, otherx - x);
   return angle;
+}
+function RedBall(x, y, angle) {
+  this.x = x;
+  this.y = y;
+  this.dx = Math.cos(angle) * 4;
+  this.dy = Math.sin(angle) * 4;
+
+  this.angle = angle;
+  this.radius = 10;
+
+  this.draw = function () {
+    c.beginPath();
+    c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+    c.fillStyle = "red";
+    c.fill();
+  };
+
+  this.update = function () {
+    this.y += this.dy;
+    this.x += this.dx;
+    this.draw();
+  };
 }
 
 //SHOOTING BOT//
@@ -553,9 +643,14 @@ function BulletsHoming(x, y) {
   this.dy = Math.sin(this.angle) * 3;
   this.w = 60;
   this.h = 60;
-  this.angle = 0;
   this.radius = this.w / 2;
-
+  this.initialAngle = 0;
+  this.random = Math.random() > 0.5 ? -1 : 1;
+  if (this.random === -1) {
+    this.angle = Math.PI;
+  } else {
+    this.angle = 0;
+  }
   this.draw = function () {
     c.save();
     c.translate(this.x, this.y);
@@ -570,14 +665,36 @@ function BulletsHoming(x, y) {
   };
 
   this.update = function () {
-    this.angle = Angle(
+    // this.angle = Angle(
+    //   this.x + this.w / 2,
+    //   this.y + this.h / 2,
+    //   player.x + player.w / 2,
+    //   player.y + player.h / 2
+    // );
+    this.initialAngle = Angle(
       this.x + this.w / 2,
       this.y + this.h / 2,
       player.x + player.w / 2,
       player.y + player.h / 2
     );
-    this.dx = Math.cos(this.angle) * 4.5;
-    this.dy = Math.sin(this.angle) * 4.5;
+
+    if (
+      this.angle < this.initialAngle + 0.8 &&
+      this.angle > this.initialAngle - 0.8
+    ) {
+      gsap.to(this, {
+        angle: this.initialAngle,
+      });
+      // this.angle = this.initialAngle;
+    } else {
+      this.angle += this.random * 0.025;
+    }
+
+    if (this.angle >= 2 * Math.PI || this.angle <= -2 * Math.PI) {
+      this.angle = 0;
+    }
+    this.dx = Math.cos(this.angle) * 5;
+    this.dy = Math.sin(this.angle) * 5;
     this.y += this.dy;
     this.x += this.dx;
     this.draw();
@@ -833,7 +950,7 @@ setInterval(() => {
           35,
           35,
           booster1,
-          3
+          2.5
         )
       );
     }, randomRangeGenerator(6000, 1000));
@@ -860,7 +977,7 @@ setInterval(() => {
           35,
           35,
           booster2,
-          3
+          2.5
         )
       );
     }, randomRangeGenerator(6000, 1000));
@@ -886,12 +1003,17 @@ setInterval(() => {
           35,
           35,
           booster3,
-          3
+          2.5
         )
       );
     }, randomRangeGenerator(6000, 1000));
   }
 }, 50000);
+const dropRedBall = () => {
+  redball.push(
+    new RedBall(homingBot[0].x, homingBot[0].y, Math.random() * Math.PI)
+  );
+};
 
 setInterval(() => {
   gsap.to(homeBase, {
@@ -966,11 +1088,73 @@ baseShoot = setInterval(() => {
     }
   }
 }, 900);
+baseShootit = setInterval(() => {
+  if (baseShootBool) {
+    for (let i = 0; i < villainbots.length; i++) {
+      if (
+        distance(
+          villainbots[i].x,
+          villainbots[i].y,
+          homeBase.x + homeBase.w / 2,
+          homeBase.y + homeBase.h / 2
+        ) <= 400
+      ) {
+        gsap.to(homeBase, {
+          angle: Angle(
+            homeBase.x + homeBase.w / 2,
+            homeBase.y + homeBase.h / 2,
+            villainbots[i].x,
+            villainbots[i].y
+          ),
+        });
+
+        setTimeout(() => {
+          if (villainbots[i]) {
+            let angle = Math.atan2(
+              villainbots[i].y - (homeBase.y + homeBase.h / 2),
+              villainbots[i].x - (homeBase.x + homeBase.w / 2)
+            );
+            let angleConst =
+              Angle(
+                villainbots[i].x,
+                villainbots[i].y,
+                homeBase.x + homeBase.w / 2,
+                homeBase.y + homeBase.h / 2
+              ) + Math.PI;
+            const velocity = {
+              x: Math.cos(angle) * 30,
+              y: Math.sin(angle) * 30,
+            };
+            bullets.push(
+              new Bullets(
+                homeBase.x + homeBase.w / 2,
+                homeBase.y + homeBase.h / 2,
+                80,
+                8,
+                {
+                  x: velocity.x,
+                  y: velocity.y,
+                },
+                bulletImage,
+                angleConst
+              )
+            );
+            boolAfterShoot = true;
+            shootSound.currentTime = 0;
+            shootSound.play();
+          }
+        }, 50);
+
+        break;
+      }
+    }
+  }
+}, 200);
 const dropHomingFunction = () => {
-  // setTimeout(() => {
-  homingBotVillain.push(new BulletsHoming(homingBot[0].x, homingBot[0].y));
-  boolhoming = true;
-  // }, 6000);
+  if (homingBot[0]) {
+    homingBotVillain.push(new BulletsHoming(homingBot[0].x, homingBot[0].y));
+    boolhoming = true;
+  }
 };
 const dropBoss = () => {
   homingBot.push(
@@ -986,10 +1170,18 @@ const dropBoss = () => {
 };
 
 BossInterval = setInterval(() => {
+  villainDropProcessBool = false;
+
   dropBoss();
   bosshomingmissile = setInterval(() => {
     dropHomingFunction();
-  }, 5000);
+  }, 2000);
+
+  bosshomingmissile1 = setInterval(() => {
+    redballbool = true;
+    dropRedBall();
+  }, 6000);
+
   clearInterval(BossInterval);
 }, 50000);
 
@@ -1001,6 +1193,8 @@ function init() {
   playerLife;
   playerLifeActual;
   //OBJECT SIZES//
+  redball = [];
+
   playerSize = 30;
   lifeCountPlayer = 70;
   lifeCountVillain = 70;
@@ -1010,9 +1204,12 @@ function init() {
   bullets = [];
   bulletsEnemyBot = [];
   villainbots = [];
+  spritenewHoming = [];
   homingBot = [];
   powerUp2 = [];
   powerUp3 = [];
+  spritenew = [];
+
   count2 = 15000;
   villains = [];
   homingBotVillain = [];
@@ -1022,6 +1219,8 @@ function init() {
   bulletBool = false;
   boolhoming = false;
   villainBool = true;
+  redballbool = false;
+
   gameOverBool = false;
   booldroppedfor1 = true;
   booldroppedfor2 = true;
@@ -1072,6 +1271,7 @@ function init() {
   for (let i = 300; i < 400; i++) {
     stars[i] = new Stars(4, 4, "rgb(255,255,255,0.9)", 0.8);
   }
+
   /////
 
   ////
@@ -1097,23 +1297,105 @@ const animate = () => {
   // orb.update();
 
   if (boolhoming) {
+    if (redballbool) {
+      for (let i = 0; i < redball.length; i++) {
+        redball[i].update();
+
+        if (
+          redball[i].x < canvas.width / 10 ||
+          redball[i].x > canvas.width - canvas.width / 10 ||
+          redball[i].y > canvas.height - canvas.height / 2.5
+        ) {
+          villainbots.push(
+            new VillainBot(redball[i].x, redball[i].y, 70, 70, enemyBotImage)
+          );
+          redball.splice(i, 1);
+        }
+      }
+    }
     for (let i = 0; i < homingBotVillain.length; i++) {
       homingBotVillain[i].update();
 
       for (let j = 0; j < bullets.length; j++) {
+        if (homingBotVillain[i]) {
+          if (
+            distance(
+              homingBotVillain[i].x + homingBotVillain[i].w / 2,
+              homingBotVillain[i].y + homingBotVillain[i].h / 2,
+              bullets[j].x,
+              bullets[j].y
+            ) <
+            distance(
+              homingBotVillain[i].w / 2,
+              homingBotVillain[i].h / 2,
+              0,
+              0
+            ) +
+              distance(bullets[j].w / 2, bullets[j].h / 2, 0, 0) -
+              40
+          ) {
+            spritenew.push(
+              new Sprite(homingBotVillain[i].x, homingBotVillain[i].y)
+            );
+            homingBotVillain.splice(i, 1);
+            bullets.splice(j, 1);
+          }
+        }
+      }
+      if (homingBotVillain[i]) {
         if (
           distance(
             homingBotVillain[i].x + homingBotVillain[i].w / 2,
             homingBotVillain[i].y + homingBotVillain[i].h / 2,
-            bullets[j].x,
-            bullets[j].y
+            player.x,
+            player.y
           ) <
-          distance(homingBotVillain[i].w / 2, homingBotVillain[i].h / 2, 0, 0) +
-            distance(bullets[j].w / 2, bullets[j].h / 2, 0, 0) -
-            40
+          player.radius + 20
+        ) {
+          player.life -= 5;
+          if (player.life <= 0 || player.life === 0) {
+            console.log("end");
+            gameOverBool = true;
+          }
+          spritenewHoming.push(
+            new SpriteHoming(
+              player.x - player.radius / 2,
+              player.y - player.radius / 2
+            )
+          );
+          homingBotVillain.splice(i, 1);
+          explosion.play();
+        }
+      }
+
+      for (let j = 0; j < homingBotVillain.length; j++) {
+        if (homingBotVillain[i]) {
+          if (
+            i !== j &&
+            distance(
+              homingBotVillain[i].x + homingBotVillain[i].w / 2,
+              homingBotVillain[i].y + homingBotVillain[i].h / 2,
+              homingBotVillain[j].x + homingBotVillain[j].w / 2,
+              homingBotVillain[j].y + homingBotVillain[j].h / 2
+            ) < 15
+          ) {
+            homingBotVillain.splice(i, 1);
+            homingBotVillain.splice(j, 1);
+          }
+        }
+      }
+      if (homingBotVillain[i]) {
+        if (
+          distance(
+            homingBotVillain[i].x + homingBotVillain[i].w / 2,
+            homingBotVillain[i].y + homingBotVillain[i].h / 2,
+            homeBase.x + homeBase.w / 2,
+            homeBase.y + homeBase.h / 2
+          ) <
+          homeBase.w / 2
         ) {
           homingBotVillain.splice(i, 1);
-          bullets.splice(j, 1);
+          lifeCountBase -= 20;
         }
       }
     }
@@ -1131,25 +1413,42 @@ const animate = () => {
     for (let i = 0; i < homingBot.length; i++) {
       homingBot[i].update();
       for (let j = 0; j < bullets.length; j++) {
-        if (
-          distance(homingBot[i].x, homingBot[i].y, bullets[j].x, bullets[j].y) <
-          100
-        ) {
-          console.log("colloidedsirr");
-          homingBot[i].life -= 10;
-          bullets.splice(j, 1);
+        if (homingBot[i]) {
+          if (
+            distance(
+              homingBot[i].x,
+              homingBot[i].y,
+              bullets[j].x,
+              bullets[j].y
+            ) < 100
+          ) {
+            spritenew.push(new Sprite(homingBot[i].x, homingBot[i].y));
+            homingBot[i].life -= 10;
+            bullets.splice(j, 1);
 
-          if (homingBot[i].life === 0) {
-            homingBot.splice(i, 1);
-            dropBossBool = false;
+            if (homingBot[i].life === 0) {
+              score += 2000;
+              redballbool = false;
+              homingBot.splice(i, 1);
+              dropBossBool = false;
+              villainDropProcessBool = true;
 
-            BossInterval = setInterval(() => {
-              dropBoss();
-              bosshomingmissile = setInterval(() => {
-                dropHomingFunction();
-              }, 5000);
-              clearInterval(BossInterval);
-            }, 50000);
+              BossInterval = setInterval(() => {
+                villainDropProcessBool = false;
+
+                dropBoss();
+                bosshomingmissile = setInterval(() => {
+                  dropHomingFunction();
+                }, 2000);
+
+                bosshomingmissile1 = setInterval(() => {
+                  redballbool = true;
+                  dropRedBall();
+                }, 6000);
+
+                clearInterval(BossInterval);
+              }, 50000);
+            }
           }
         }
       }
@@ -1289,6 +1588,13 @@ const animate = () => {
           ) <
           bullets[j].radius + villainbots[i].radius
         ) {
+          spritenew.push(
+            new Sprite(
+              villainbots[i].x - villainbots[i].w / 2,
+              villainbots[i].y - villainbots[i].h / 2
+            )
+          );
+
           villainbots[i].life -= 27;
           score += 40;
           bullets.splice(j, 1);
@@ -1324,7 +1630,7 @@ const animate = () => {
         bulletsEnemyBot.splice(i, 1);
         player.life -= 10;
         score -= 20;
-        if (player.life === 0) {
+        if (player.life <= 0 || player.life === 0) {
           console.log("end");
           gameOverBool = true;
         }
@@ -1366,6 +1672,8 @@ const animate = () => {
           ) <
           bullets[j].radius + villains[i].radius
         ) {
+          spritenew.push(new Sprite(villains[i].x, villains[i].y));
+
           villains.splice(i, 1);
           score += 30;
           bullets.splice(j, 1);
@@ -1399,21 +1707,10 @@ const animate = () => {
         villains.splice(i, 1);
         player.life -= 10;
         score -= 20;
-        if (player.life === 0) {
+        if (player.life <= 0) {
           console.log("end");
           gameOverBool = true;
         }
-      }
-    }
-    if (villains[i]) {
-      if (
-        distance(
-          villains[i].x,
-          villains[i].y,
-          homeBase.x + homeBase.w / 2,
-          homeBase.y + homeBase.h / 2
-        ) <= 400
-      ) {
       }
     }
   }
@@ -1447,6 +1744,8 @@ const animate = () => {
     }, 2000);
   }
 
+  for (let i = 0; i < spritenewHoming.length; i++) spritenewHoming[i].update();
+  for (let i = 0; i < spritenew.length; i++) spritenew[i].update();
   text.update();
   highScoreText.update();
 
@@ -1558,6 +1857,9 @@ document.querySelector(".pause").addEventListener("click", () => {
   cancelAnimationFrame(animateit);
   villainBool = false;
   villainDropProcessBool = false;
+  cancelAnimationFrame(BossInterval);
+  cancelAnimationFrame(bosshomingmissile);
+  cancelAnimationFrame(bosshomingmissile1);
   baseShootBool = false;
   clearInterval(animateUs);
   bgMusic.pause();
@@ -1577,7 +1879,21 @@ document.querySelector(".pause").addEventListener("click", () => {
 document.querySelector(".resume").addEventListener("click", () => {
   console.log("hi");
   animateit = requestAnimationFrame(animate);
+  BossInterval = setInterval(() => {
+    villainDropProcessBool = false;
 
+    dropBoss();
+    bosshomingmissile = setInterval(() => {
+      dropHomingFunction();
+    }, 2000);
+
+    bosshomingmissile1 = setInterval(() => {
+      redballbool = true;
+      dropRedBall();
+    }, 6000);
+
+    clearInterval(BossInterval);
+  }, 50000);
   villainBool = true;
   animateUs = setInterval(() => {
     let x;
