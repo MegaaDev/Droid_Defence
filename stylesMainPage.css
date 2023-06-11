@@ -1,21 +1,21 @@
 * {
   border: 0;
   margin: 0;
+
   box-sizing: border-box;
-  overflow: hidden;
-  font-family: "Russo One", sans-serif;
 }
 .background-container {
   height: 100vh;
   width: 100%;
   position: relative;
+  overflow: hidden;
 }
 /* canvas {
   background-color: rgb(29, 29, 29);
 } */
 .logo {
   position: absolute;
-  top: 30%;
+  top: 45%;
   left: 50%;
   transform: translate(-50%, -50%);
 
@@ -55,4 +55,51 @@ a {
 .button:hover {
   background: linear-gradient(to bottom, rgb(98, 255, 234), rgb(54, 85, 135));
   transform: translate(-50%, -50%) translateY(-10px);
+}
+.enterMessage {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin-top: 100px;
+  color: white;
+  font-family: "Montserrat", sans-serif;
+  font-weight: 300;
+  font-size: 1.4rem;
+  opacity: 0.6;
+  animation: flick 2s linear 0s infinite alternate;
+}
+.player {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(0%, -50%);
+  height: 300px;
+  width: 300px;
+  animation: player 3s ease 0s;
+}
+
+@keyframes player {
+  0% {
+    top: 240%;
+  }
+  100% {
+    top: 50%;
+  }
+}
+@keyframes flick {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}
+
+.enemybot {
+  display: none;
+}
+
+.villain {
+  display: none;
 }
