@@ -60,6 +60,7 @@ let villainBotSize;
 let fpsCount;
 let homingBotVillain = [];
 let move;
+let pauseAndResumeBool = true;
 let musicBool = true;
 let bullets;
 let baseShootit;
@@ -1334,8 +1335,15 @@ const animate = () => {
               homingBotVillain[i].y + homingBotVillain[i].h / 2,
               homingBotVillain[j].x + homingBotVillain[j].w / 2,
               homingBotVillain[j].y + homingBotVillain[j].h / 2
-            ) < 15
+            ) < 25
           ) {
+            spritenewHoming.push(
+              new Sprite(homingBotVillain[i].x, homingBotVillain[i].y)
+            );
+            spritenewHoming.push(
+              new Sprite(homingBotVillain[j].x, homingBotVillain[j].y)
+            );
+
             homingBotVillain.splice(i, 1);
             homingBotVillain.splice(j, 1);
           }
@@ -1682,11 +1690,31 @@ const animate = () => {
       highScore = score;
       localStorage.setItem("high--score", highScore);
     }
+    pauseAndResumeBool = false;
     clearInterval(animateit);
     villainBool = false;
     villainDropProcessBool = false;
     bgMusic.pause();
     setTimeout(() => {
+      if (homingBot[0].life !== 0) {
+        BossInterval = setInterval(() => {
+          villainDropProcessBool = false;
+
+          dropBoss();
+          bosshomingmissile = setInterval(() => {
+            dropHomingFunction();
+          }, 2000);
+
+          bosshomingmissile1 = setInterval(() => {
+            redballbool = true;
+            dropRedBall();
+          }, 6000);
+
+          clearInterval(BossInterval);
+        }, 50000);
+      }
+      pauseAndResumeBool = true;
+
       villainBool = true;
       villainDropProcessBool = true;
       score = 0;
@@ -1800,74 +1828,78 @@ const bulletPowerUp = () => {
 };
 
 document.querySelector(".pause").addEventListener("click", () => {
-  clearInterval(animateit);
-  villainBool = false;
-  villainDropProcessBool = false;
-  clearInterval(BossInterval);
-  redballbool = false;
-  clearInterval(bosshomingmissile);
-  clearInterval(bosshomingmissile1);
-  baseShootBool = false;
-  clearInterval(animateUs);
-  bgMusic.pause();
-  document.querySelector(".pause").classList.remove("display");
-  document.querySelector(".resume").classList.add("display");
+  if (pauseAndResumeBool) {
+    clearInterval(animateit);
+    villainBool = false;
+    villainDropProcessBool = false;
+    clearInterval(BossInterval);
+    redballbool = false;
+    clearInterval(bosshomingmissile);
+    clearInterval(bosshomingmissile1);
+    baseShootBool = false;
+    clearInterval(animateUs);
+    bgMusic.pause();
+    document.querySelector(".pause").classList.remove("display");
+    document.querySelector(".resume").classList.add("display");
+  }
 });
 
 document.querySelector(".resume").addEventListener("click", () => {
-  animateit = setTimeout(() => {
-    requestAnimationFrame(animate);
-  }, 12);
-  BossInterval = setInterval(() => {
-    villainDropProcessBool = false;
+  if (pauseAndResumeBool) {
+    animateit = setTimeout(() => {
+      requestAnimationFrame(animate);
+    }, 12);
+    BossInterval = setInterval(() => {
+      villainDropProcessBool = false;
 
-    dropBoss();
-    bosshomingmissile = setInterval(() => {
-      dropHomingFunction();
-    }, 2000);
+      dropBoss();
+      bosshomingmissile = setInterval(() => {
+        dropHomingFunction();
+      }, 2000);
 
-    bosshomingmissile1 = setInterval(() => {
-      redballbool = true;
-      dropRedBall();
-    }, 6000);
+      bosshomingmissile1 = setInterval(() => {
+        redballbool = true;
+        dropRedBall();
+      }, 6000);
 
-    clearInterval(BossInterval);
-  }, 50000);
-  villainBool = true;
-  animateUs = setInterval(() => {
-    let x;
-    let y;
-    x = Math.random() * canvas.width;
-    y = -40;
-    let h;
-    let w;
-    h = 50;
-    w = 50;
-    let angle = Math.atan2(
-      homeBase.y + homeBase.h / 2 - (y + h / 2),
-      homeBase.x + homeBase.w / 2 - (x + w / 2)
-    );
+      clearInterval(BossInterval);
+    }, 50000);
+    villainBool = true;
+    animateUs = setInterval(() => {
+      let x;
+      let y;
+      x = Math.random() * canvas.width;
+      y = -40;
+      let h;
+      let w;
+      h = 50;
+      w = 50;
+      let angle = Math.atan2(
+        homeBase.y + homeBase.h / 2 - (y + h / 2),
+        homeBase.x + homeBase.w / 2 - (x + w / 2)
+      );
 
-    let velocity = {
-      x: Math.cos(angle) * 2,
-      y: Math.sin(angle) * 2,
-    };
-    villains.push(
-      new Villain(x, y, w, h, {
-        x: velocity.x,
-        y: velocity.y,
-      })
-    );
-  }, ispeed);
+      let velocity = {
+        x: Math.cos(angle) * 2,
+        y: Math.sin(angle) * 2,
+      };
+      villains.push(
+        new Villain(x, y, w, h, {
+          x: velocity.x,
+          y: velocity.y,
+        })
+      );
+    }, ispeed);
 
-  baseShootBool = true;
+    baseShootBool = true;
 
-  villainDropProcessBool = true;
-  bgMusic.play();
-  bgMusic.volume = 0.4;
+    villainDropProcessBool = true;
+    bgMusic.play();
+    bgMusic.volume = 0.4;
 
-  document.querySelector(".resume").classList.remove("display");
-  document.querySelector(".pause").classList.add("display");
+    document.querySelector(".resume").classList.remove("display");
+    document.querySelector(".pause").classList.add("display");
+  }
 });
 
 function randomRangeGenerator1() {
