@@ -1696,22 +1696,24 @@ const animate = () => {
     villainDropProcessBool = false;
     bgMusic.pause();
     setTimeout(() => {
-      if (homingBot[0].life !== 0) {
-        BossInterval = setInterval(() => {
-          villainDropProcessBool = false;
+      if (homingBot[0]) {
+        if (homingBot[0].life !== 0) {
+          BossInterval = setInterval(() => {
+            villainDropProcessBool = false;
 
-          dropBoss();
-          bosshomingmissile = setInterval(() => {
-            dropHomingFunction();
-          }, 2000);
+            dropBoss();
+            bosshomingmissile = setInterval(() => {
+              dropHomingFunction();
+            }, 2000);
 
-          bosshomingmissile1 = setInterval(() => {
-            redballbool = true;
-            dropRedBall();
-          }, 6000);
+            bosshomingmissile1 = setInterval(() => {
+              redballbool = true;
+              dropRedBall();
+            }, 6000);
 
-          clearInterval(BossInterval);
-        }, 50000);
+            clearInterval(BossInterval);
+          }, 50000);
+        }
       }
       pauseAndResumeBool = true;
 
